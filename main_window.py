@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QPushButton
+    QLabel, QComboBox, QPushButton, QSlider, QLineEdit
 )
 from PyQt6.QtCore import Qt
 
@@ -27,6 +27,7 @@ class MainApp(QMainWindow):
             "styles/base.qss",
             "styles/combo.qss",
             "styles/button.qss",
+            "styles/slider.qss",
         ]
 
         try:
@@ -82,6 +83,26 @@ class MainApp(QMainWindow):
         top_layout.addWidget(self.minimize_btn)
         top_layout.addWidget(self.close_btn)
 
+        # 슬라이더
+        self.sense_label = QLabel("배경 감도:")
+        self.sense_slider = QSlider(Qt.Orientation.Horizontal)
+        self.sense_slider.setMinimum(1)
+        self.sense_slider.setMaximum(10)
+        self.sense_slider.setValue(7)
+        self.sense_slider.valueChanged.connect(self.slider_changed)
+
+        self.sense_input = QLineEdit("0.7")
+        self.sense_input.setFixedWidth(50)
+        self.sense_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sense_input.textChanged.connect(self.input_changed)
+
+        slider_layout = QHBoxLayout()
+
+        slider_layout.addWidget(self.sense_label)
+        slider_layout.addWidget(self.sense_slider)
+        slider_layout.addWidget(self.sense_input)
+        slider_layout.addStretch()
+
         # 캠 영역
         video_layout = QHBoxLayout()
 
@@ -98,4 +119,16 @@ class MainApp(QMainWindow):
 
         main_layout.addLayout(top_layout)
         main_layout.addSpacing(12)
+        main_layout.addLayout(slider_layout)
         main_layout.addLayout(video_layout)
+
+    def slider_changed(self, value):
+        self.sense_input.setText(f"{value / 10:.1f}")
+
+    def input_changed(self):
+        value = float(self.sense_input.text())
+
+        if 0.1 <= value <= 1.0:
+            self.sense_slider.blockSignals(True)
+            self.sense_slider.setValue(int(value * 10))
+            self.sense_slider.blockSignals(False)
