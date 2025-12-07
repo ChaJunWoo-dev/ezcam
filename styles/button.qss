@@ -18,3 +18,27 @@ QPushButton:disabled {
     background-color: #cccccc;
     color: #7a7a7a;
 }
+
+QPushButton#closeButton {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+QPushButton#closeButton:hover {
+    background-color: #c0392b;
+}
+
+QPushButton#minimizeButton {
+    background-color: #cccccc;
+    color: #2b2b2b;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+QPushButton#minimizeButton:hover {
+    background-color: #aaaaaa;
+}
