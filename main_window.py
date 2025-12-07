@@ -23,9 +23,21 @@ class MainApp(QMainWindow):
 
 
     def load_stylesheet(self):
+        paths = [
+            "style/style_base.qss",
+            "style/style_combo.qss",
+            "style/style_button.qss",
+            "style/style_window_buttons.qss"
+        ]
+
         try:
-            with open("./resources/style.qss", "r", encoding="utf-8") as f:
-                self.setStyleSheet(f.read())
+            qss = ""
+
+            for path in paths:
+                with open(path, "r", encoding="utf-8") as f:
+                    qss += f.read()
+
+            self.setStyleSheet(f.read())
         except Exception as e:
             print("QSS 파일 로딩 실패:", e)
 
@@ -52,9 +64,20 @@ class MainApp(QMainWindow):
         self.run_button = QPushButton("켜기")
         self.run_button.setEnabled(False)
 
+        self.minimize_btn = QPushButton("-")
+        self.minimize_btn.setFixedWidth(40)
+        self.minimize_btn.clicked.connect(self.showMinimized)
+
+        self.close_btn = QPushButton("X")
+        self.close_btn.setFixedWidth(40)
+        self.close_btn.clicked.connect(self.close)
+
+
         top.addWidget(self.camera_label)
         top.addWidget(self.camera_combo)
         top.addWidget(self.run_button)
+        top.addWidget(self.close_btn)
+        top.addWidget(self.minimize_btn)
         top.addStretch()
 
         main.addLayout(top)
