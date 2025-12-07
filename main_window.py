@@ -45,8 +45,8 @@ class MainApp(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
 
-        main = QVBoxLayout(central)
-        top = QHBoxLayout()
+        main_layout = QVBoxLayout(central)
+        top_layout = QHBoxLayout()
 
         self.camera_label = QLabel("카메라: ")
         self.camera_combo = QComboBox()
@@ -73,13 +73,29 @@ class MainApp(QMainWindow):
         self.close_btn.setFixedWidth(40)
         self.close_btn.clicked.connect(self.close)
 
-        top.addWidget(self.camera_label)
-        top.addWidget(self.camera_combo)
-        top.addWidget(self.run_button)
+        top_layout.addWidget(self.camera_label)
+        top_layout.addWidget(self.camera_combo)
+        top_layout.addWidget(self.run_button)
 
-        top.addStretch()
+        top_layout.addStretch()
 
-        top.addWidget(self.minimize_btn)
-        top.addWidget(self.close_btn)
+        top_layout.addWidget(self.minimize_btn)
+        top_layout.addWidget(self.close_btn)
 
-        main.addLayout(top)
+        # 캠 영역
+        video_layout = QHBoxLayout()
+
+        self.original_area = QLabel("원본 캠")
+        self.original_area.setMinimumSize(640, 480)
+        self.original_area.setObjectName("originalVideo")
+
+        self.removed_bg_area = QLabel("배경 제거")
+        self.removed_bg_area.setObjectName("removedBgArea")
+        self.removed_bg_area.setMinimumSize(640, 480)
+
+        video_layout.addWidget(self.original_area)
+        video_layout.addWidget(self.removed_bg_area)
+
+        main_layout.addLayout(top_layout)
+        main_layout.addSpacing(12)
+        main_layout.addLayout(video_layout)
