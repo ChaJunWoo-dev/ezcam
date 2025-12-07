@@ -1,0 +1,18 @@
+QMainWindow,
+QWidget {
+  background-color: #f7f7f7;
+  color: #2b2b2b;
+  font-size: 14px;
+}
+
+QLabel {
+  color: #2b2b2b;
+}
+
+QLabel#originalVideo, QLabel#removedBgArea {
+    border: 2px solid #ccc;
+    background-color: #000;
+    color: white;
+    font-weight: bold;
+    qproperty-alignment: 'AlignCenter';
+}
