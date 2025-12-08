@@ -118,7 +118,10 @@ class MainApp(QMainWindow):
             self.run_button.setText("끄기")
 
     def stop_camera(self):
-        pass
+        self.camera_manager.on_stop_camera()
+        self.timer.stop()
+        self.original_area.clear()
+        self.run_button.setText("켜기")
 
     def update_frame(self):
         frame = self.camera_manager.get_frame()
