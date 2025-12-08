@@ -1,9 +1,12 @@
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QImage, QPixmap
+
 from camera_manager import CameraManager
 from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
+import cv2
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -17,6 +20,10 @@ class MainApp(QMainWindow):
         )
 
         self.drag_pos = None
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_frame)
+
         self.camera_manager = CameraManager()
         self.camera_detector = CameraDetector(self.camera_manager)
 
@@ -98,6 +105,29 @@ class MainApp(QMainWindow):
 
     def toggle_camera(self):
         if self.camera_manager.is_running:
-            self.camera_manager.is_running = False
+            self.stop_camera()
         else:
-            self.camera_manager.is_running = True
+            self.start_camera()
+
+    def start_camera(self):
+        camera = self.camera_selector.get_selected_camera()
+
+        if camera:
+            self.camera_manager.on_start_camera(camera['index'])
+            self.timer.start(33)
+            self.run_button.setText('끄기')
+
+    def stop_camera(self):
+        pass
+
+    def update_frame(self):
+        frame = self.camera_manager.get_frame()
+
+        if frame is not None:
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            height, width, channel = rgb_frame.shape
+            bytes_per_line = channel * width
+            q_image = QImage(rgb_frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
+            pixmap = QPixmap.fromImage(q_image)
+            self.original_area.update_frame(pixmap)
+

@@ -34,3 +34,25 @@ class CameraManager:
             capture.release()
 
         return available_cameras
+
+    def on_start_camera(self, camera_index):
+        self.capture = cv2.VideoCapture(camera_index)
+        self.is_running = True
+
+    def on_stop_camera(self):
+        self.is_running = False
+
+        if self.capture:
+            self.capture.release()
+            self.capture = None
+
+    def get_frame(self):
+        if not self.is_running or not self.capture:
+            return None
+
+        ret, frame = self.capture.read()
+
+        if ret:
+            return frame
+
+        return None
