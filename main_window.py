@@ -1,10 +1,9 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QPushButton, QSlider, QLineEdit
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
 )
-from PyQt6.QtCore import Qt, QTimer
-import qtawesome as qta
+from PyQt6.QtCore import Qt
 from camera_manager import CameraManager
+from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -18,8 +17,8 @@ class MainApp(QMainWindow):
         )
 
         self.drag_pos = None
-        self.camera_list = []
         self.camera_manager = CameraManager()
+        self.camera_detector = CameraDetector(self.camera_manager)
 
         self.load_stylesheet()
         self.init_ui()
@@ -50,118 +49,52 @@ class MainApp(QMainWindow):
         self.setCentralWidget(central)
 
         main_layout = QVBoxLayout(central)
+        main_layout.setContentsMargins(20, 20, 20, 20)
+
         top_layout = QHBoxLayout()
 
-        self.camera_label = QLabel("카메라: ")
-        self.camera_combo = QComboBox()
-        self.camera_combo.setMinimumWidth(250)
-
-        self.refresh_btn = QPushButton()
-        self.refresh_btn.setIcon(qta.icon('fa5s.sync-alt', color='#2b2b2b'))
-        self.refresh_btn.setFixedWidth(40)
-        self.refresh_btn.clicked.connect(self.find_cameras)
+        self.camera_selector = CameraSelector()
+        self.camera_selector.connect_refresh(self.find_cameras)
 
         self.run_button = QPushButton("켜기")
         self.run_button.setEnabled(False)
         self.run_button.clicked.connect(self.toggle_camera)
 
-        self.minimize_btn = QPushButton()
-        self.minimize_btn.setIcon(qta.icon('fa5s.minus', color='#2b2b2b'))
-        self.minimize_btn.setObjectName("minimizeButton")
-        self.minimize_btn.setFixedWidth(40)
-        self.minimize_btn.clicked.connect(self.showMinimized)
+        self.window_controls = WindowControls()
+        self.window_controls.connect_signals(self.showMinimized, self.close)
 
-        self.close_btn = QPushButton()
-        self.close_btn.setIcon(qta.icon('fa5s.times', color='white'))
-        self.close_btn.setObjectName("closeButton")
-        self.close_btn.setFixedWidth(40)
-        self.close_btn.clicked.connect(self.close)
-
-        top_layout.addWidget(self.camera_label)
-        top_layout.addWidget(self.camera_combo)
-        top_layout.addWidget(self.refresh_btn)
+        top_layout.addWidget(self.camera_selector)
         top_layout.addWidget(self.run_button)
-
         top_layout.addStretch()
+        top_layout.addWidget(self.window_controls)
 
-        top_layout.addWidget(self.minimize_btn)
-        top_layout.addWidget(self.close_btn)
+        self.slider = Slider(label_text="배경 감도:", initial_value=0.7)
 
-        # 슬라이더
-        self.sense_label = QLabel("배경 감도:")
-        self.sense_slider = QSlider(Qt.Orientation.Horizontal)
-        self.sense_slider.setMinimum(1)
-        self.sense_slider.setMaximum(10)
-        self.sense_slider.setValue(7)
-        self.sense_slider.valueChanged.connect(self.slider_changed)
-
-        self.sense_input = QLineEdit("0.7")
-        self.sense_input.setFixedWidth(50)
-        self.sense_input.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.sense_input.textChanged.connect(self.input_changed)
-
-        slider_layout = QHBoxLayout()
-
-        slider_layout.addWidget(self.sense_label)
-        slider_layout.addWidget(self.sense_slider)
-        slider_layout.addWidget(self.sense_input)
-        slider_layout.addStretch()
-
-        # 캠 영역
         video_layout = QHBoxLayout()
 
-        self.original_area = QLabel("원본 캠")
-        self.original_area.setMinimumSize(640, 480)
+        self.original_area = CameraView("원본 캠")
         self.original_area.setObjectName("originalVideo")
 
-        self.removed_bg_area = QLabel("배경 제거")
+        self.removed_bg_area = CameraView("배경 제거")
         self.removed_bg_area.setObjectName("removedBgArea")
-        self.removed_bg_area.setMinimumSize(640, 480)
 
         video_layout.addWidget(self.original_area)
         video_layout.addWidget(self.removed_bg_area)
 
         main_layout.addLayout(top_layout)
         main_layout.addSpacing(12)
-        main_layout.addLayout(slider_layout)
+        main_layout.addWidget(self.slider)
         main_layout.addLayout(video_layout)
 
-    def slider_changed(self, value):
-        self.sense_input.setText(f"{value / 10:.1f}")
-
-    def input_changed(self):
-        try:
-            value = float(self.sense_input.text())
-            if 0.1 <= value <= 1.0:
-                self.sense_slider.blockSignals(True)
-                self.sense_slider.setValue(int(value * 10))
-                self.sense_slider.blockSignals(False)
-        except ValueError:
-            pass
-
     def find_cameras(self):
-        self.refresh_btn.setEnabled(False)
+        self.camera_selector.set_loading_state()
         self.run_button.setEnabled(False)
-        self.camera_combo.clear()
-        self.camera_combo.addItem("카메라 탐지 중...")
+        self.camera_detector.detect_async(self._on_cameras_detected)
 
-        QTimer.singleShot(10, self._do_find_cameras)
-
-    def _do_find_cameras(self):
-        cameras = self.camera_manager.detect_cameras()
-
-        self.camera_list = cameras
-        self.camera_combo.clear()
-
+    def _on_cameras_detected(self, cameras):
+        self.camera_selector.update_cameras(cameras)
         if cameras:
-            for camera in cameras:
-                self.camera_combo.addItem(f"{camera['name']}")
             self.run_button.setEnabled(True)
-        else:
-            self.camera_combo.addItem("카메라를 찾을 수 없습니다")
-            self.run_button.setEnabled(False)
-
-        self.refresh_btn.setEnabled(True)
 
     def toggle_camera(self):
         if self.camera_manager.is_running:
