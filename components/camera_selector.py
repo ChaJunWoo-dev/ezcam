@@ -17,7 +17,7 @@ class CameraSelector(QWidget):
         self.camera_combo.setMinimumWidth(250)
 
         self.refresh_btn = QPushButton()
-        self.refresh_btn.setIcon(qta.icon('fa5s.sync-alt', color='#2b2b2b'))
+        self.refresh_btn.setIcon(qta.icon("fa5s.sync-alt", color="#2b2b2b"))
         self.refresh_btn.setFixedWidth(40)
 
         layout.addWidget(self.camera_label)
@@ -43,8 +43,10 @@ class CameraSelector(QWidget):
 
     def get_selected_camera(self):
         index = self.camera_combo.currentIndex()
+
         if 0 <= index < len(self.camera_list):
             return self.camera_list[index]
+
         return None
 
     def connect_refresh(self, callback):

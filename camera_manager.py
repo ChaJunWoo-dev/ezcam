@@ -24,9 +24,9 @@ class CameraManager:
                     device_name = device_names[i] if i < len(device_names) else f"카메라 {i}"
 
                     camera_info = {
-                        'index': i,
-                        'name': device_name,
-                        'size': f"{width}x{height}"
+                        "index": i,
+                        "name": device_name,
+                        "size": f"{width}x{height}"
                     }
 
                     available_cameras.append(camera_info)
@@ -34,3 +34,25 @@ class CameraManager:
             capture.release()
 
         return available_cameras
+
+    def on_start_camera(self, camera_index):
+        self.capture = cv2.VideoCapture(camera_index)
+        self.is_running = True
+
+    def on_stop_camera(self):
+        self.is_running = False
+
+        if self.capture:
+            self.capture.release()
+            self.capture = None
+
+    def get_frame(self):
+        if not self.is_running or not self.capture:
+            return None
+
+        ret, frame = self.capture.read()
+
+        if ret:
+            return frame
+
+        return None

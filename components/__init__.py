@@ -5,9 +5,9 @@ from .slider import Slider
 from .camera_view import CameraView
 
 __all__ = [
-    'CameraDetector',
-    'WindowControls',
-    'CameraSelector',
-    'Slider',
-    'CameraView'
+    "CameraDetector",
+    "WindowControls",
+    "CameraSelector",
+    "Slider",
+    "CameraView"
 ]

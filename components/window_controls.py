@@ -12,12 +12,12 @@ class WindowControls(QWidget):
         layout.setSpacing(0)
 
         self.minimize_btn = QPushButton()
-        self.minimize_btn.setIcon(qta.icon('fa5s.minus', color='#2b2b2b'))
+        self.minimize_btn.setIcon(qta.icon("fa5s.minus", color="#2b2b2b"))
         self.minimize_btn.setObjectName("minimizeButton")
         self.minimize_btn.setFixedWidth(40)
 
         self.close_btn = QPushButton()
-        self.close_btn.setIcon(qta.icon('fa5s.times', color='white'))
+        self.close_btn.setIcon(qta.icon("fa5s.times", color="white"))
         self.close_btn.setObjectName("closeButton")
         self.close_btn.setFixedWidth(40)
 

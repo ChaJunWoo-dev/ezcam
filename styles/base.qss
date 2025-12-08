@@ -14,5 +14,5 @@ QLabel#originalVideo, QLabel#removedBgArea {
     background-color: #000;
     color: white;
     font-weight: bold;
-    qproperty-alignment: 'AlignCenter';
+    qproperty-alignment: "AlignCenter";
 }
