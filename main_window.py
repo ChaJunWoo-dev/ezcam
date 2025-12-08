@@ -113,9 +113,9 @@ class MainApp(QMainWindow):
         camera = self.camera_selector.get_selected_camera()
 
         if camera:
-            self.camera_manager.on_start_camera(camera['index'])
+            self.camera_manager.on_start_camera(camera["index"])
             self.timer.start(33)
-            self.run_button.setText('끄기')
+            self.run_button.setText("끄기")
 
     def stop_camera(self):
         pass

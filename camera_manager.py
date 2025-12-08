@@ -24,9 +24,9 @@ class CameraManager:
                     device_name = device_names[i] if i < len(device_names) else f"카메라 {i}"
 
                     camera_info = {
-                        'index': i,
-                        'name': device_name,
-                        'size': f"{width}x{height}"
+                        "index": i,
+                        "name": device_name,
+                        "size": f"{width}x{height}"
                     }
 
                     available_cameras.append(camera_info)
