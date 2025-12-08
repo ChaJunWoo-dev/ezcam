@@ -2,8 +2,9 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QComboBox, QPushButton, QSlider, QLineEdit
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 import qtawesome as qta
+from camera_manager import CameraManager
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -18,10 +19,11 @@ class MainApp(QMainWindow):
 
         self.drag_pos = None
         self.camera_list = []
-        self.is_running = False
+        self.camera_manager = CameraManager()
 
         self.load_stylesheet()
         self.init_ui()
+        self.find_cameras()
 
     def load_stylesheet(self):
         paths = [
@@ -57,6 +59,7 @@ class MainApp(QMainWindow):
         self.refresh_btn = QPushButton()
         self.refresh_btn.setIcon(qta.icon('fa5s.sync-alt', color='#2b2b2b'))
         self.refresh_btn.setFixedWidth(40)
+        self.refresh_btn.clicked.connect(self.find_cameras)
 
         self.run_button = QPushButton("켜기")
         self.run_button.setEnabled(False)
@@ -136,8 +139,32 @@ class MainApp(QMainWindow):
         except ValueError:
             pass
 
-    def toggle_camera(self):
-        if self.is_running:
-            self.is_running = False
+    def find_cameras(self):
+        self.refresh_btn.setEnabled(False)
+        self.run_button.setEnabled(False)
+        self.camera_combo.clear()
+        self.camera_combo.addItem("카메라 탐지 중...")
+
+        QTimer.singleShot(10, self._do_find_cameras)
+
+    def _do_find_cameras(self):
+        cameras = self.camera_manager.detect_cameras()
+
+        self.camera_list = cameras
+        self.camera_combo.clear()
+
+        if cameras:
+            for camera in cameras:
+                self.camera_combo.addItem(f"{camera['name']}")
+            self.run_button.setEnabled(True)
         else:
-            self.is_running = True
+            self.camera_combo.addItem("카메라를 찾을 수 없습니다")
+            self.run_button.setEnabled(False)
+
+        self.refresh_btn.setEnabled(True)
+
+    def toggle_camera(self):
+        if self.camera_manager.is_running:
+            self.camera_manager.is_running = False
+        else:
+            self.camera_manager.is_running = True
