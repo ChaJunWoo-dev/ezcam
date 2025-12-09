@@ -3,10 +3,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
+import cv2
 
 from camera_manager import CameraManager
 from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
-import cv2
+from background_remover import remove_bg, apply_green_bg
 
 class MainApp(QMainWindow):
     def __init__(self):
@@ -126,11 +127,27 @@ class MainApp(QMainWindow):
     def update_frame(self):
         frame = self.camera_manager.get_frame()
 
-        if frame is not None:
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            height, width, channel = rgb_frame.shape
-            bytes_per_line = channel * width
-            q_image = QImage(rgb_frame.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
-            pixmap = QPixmap.fromImage(q_image)
-            self.original_area.update_frame(pixmap)
+        if frame is None:
+            return
 
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        self.show_original(rgb)
+
+        clean_bg = remove_bg(frame)
+        processed_bg = apply_green_bg(clean_bg)
+        self.show_chroma(processed_bg)
+
+    def show_original(self, frame):
+        h, w, ch = frame.shape
+        bytes_per_line = ch * w
+        q_img = QImage(frame.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+        pix = QPixmap.fromImage(q_img)
+        self.original_area.update_frame(pix)
+
+    def show_chroma(self, frame):
+        h, w, ch = frame.shape
+        bytes_per_line = ch * w
+        rgba = cv2.cvtColor(frame, cv2.COLOR_BGRA2RGBA)
+        q_img = QImage(rgba.data, w, h, bytes_per_line, QImage.Format.Format_RGBA8888)
+        pix = QPixmap.fromImage(q_img)
+        self.removed_bg_area.update_frame(pix)
