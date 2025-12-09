@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QLabel
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
+import cv2
 
 from mouse_event import MouseEvent
 from background_remover import remove_bg
@@ -31,9 +32,10 @@ class OverlayWindow(QLabel, MouseEvent):
             return
 
         clean_bg = remove_bg(frame)
-        h, w, ch = clean_bg.shape
+        rgba = cv2.cvtColor(clean_bg, cv2.COLOR_BGRA2RGBA)
+        h, w, ch = rgba.shape
         bytes_per_line = ch * w
-        qimg = QImage(clean_bg.data, w, h, bytes_per_line, QImage.Format.Format_RGBA8888)
+        qimg = QImage(rgba.data, w, h, bytes_per_line, QImage.Format.Format_RGBA8888)
         pix = QPixmap.fromImage(qimg).scaled(self.size())
         self.setPixmap(pix)
 

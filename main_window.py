@@ -111,7 +111,8 @@ class MainApp(QMainWindow, MouseEvent):
         self.camera_detector.detect_async(self._on_cameras_detected)
 
     def redetect_cameras(self):
-        self.stop_camera()
+        if self.camera_manager.is_running:
+            self.stop_camera()
         self.find_cameras()
 
     def _on_cameras_detected(self, cameras):

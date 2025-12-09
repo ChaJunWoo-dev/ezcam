@@ -8,10 +8,20 @@ class MouseEvent:
         self.resizing = False
         self.resize_dir = None
         self.resize_start_geo = None
+        self.ctrl_resize_mode = False
+        self.ctrl_resize_start_pos = None
+        self.ctrl_resize_start_size = None
         self.setMouseTracking(True)
 
     def mousePressEvent(self, event):
         if event.button() != Qt.MouseButton.LeftButton:
+            return
+
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            self.ctrl_resize_mode = True
+            self.ctrl_resize_start_pos = event.globalPosition().toPoint()
+            self.ctrl_resize_start_size = self.size()
+            event.accept()
             return
 
         pos = event.position()
@@ -61,7 +71,13 @@ class MouseEvent:
 
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.MouseButton.LeftButton:
-            if self.resizing:
+            if self.ctrl_resize_mode:
+                delta = event.globalPosition().toPoint() - self.ctrl_resize_start_pos
+                new_width = max(100, self.ctrl_resize_start_size.width() + delta.x())
+                new_height = max(100, self.ctrl_resize_start_size.height() + delta.y())
+                self.resize(new_width, new_height)
+                event.accept()
+            elif self.resizing:
                 self._handle_resize(event)
             elif self.drag_pos:
                 self.move(event.globalPosition().toPoint() - self.drag_pos)
@@ -118,6 +134,9 @@ class MouseEvent:
         self.setGeometry(geo)
 
     def mouseReleaseEvent(self, event):
+        self.ctrl_resize_mode = False
+        self.ctrl_resize_start_pos = None
+        self.ctrl_resize_start_size = None
         self.drag_pos = None
         self.resizing = False
         self.resize_dir = None
