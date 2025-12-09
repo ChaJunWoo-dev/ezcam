@@ -68,11 +68,15 @@ class MainApp(QMainWindow):
         self.run_button.setEnabled(False)
         self.run_button.clicked.connect(self.toggle_camera)
 
+        self.overlay_button = QPushButton("오버레이")
+        self.overlay_button.setEnabled(False)
+
         self.window_controls = WindowControls()
         self.window_controls.connect_signals(self.showMinimized, self.close)
 
         top_layout.addWidget(self.camera_selector)
         top_layout.addWidget(self.run_button)
+        top_layout.addWidget(self.overlay_button)
         top_layout.addStretch()
         top_layout.addWidget(self.window_controls)
 
@@ -117,6 +121,7 @@ class MainApp(QMainWindow):
             self.camera_manager.on_start_camera(camera["index"])
             self.timer.start(33)
             self.run_button.setText("끄기")
+            self.overlay_button.setEnabled(True)
 
     def stop_camera(self):
         self.camera_manager.on_stop_camera()
@@ -124,6 +129,7 @@ class MainApp(QMainWindow):
         self.original_area.clear()
         self.removed_bg_area.clear()
         self.run_button.setText("켜기")
+        self.overlay_button.setEnabled(False)
 
     def update_frame(self):
         frame = self.camera_manager.get_frame()
