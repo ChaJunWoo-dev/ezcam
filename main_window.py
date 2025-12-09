@@ -65,7 +65,7 @@ class MainApp(QMainWindow, Draggable):
         top_layout = QHBoxLayout()
 
         self.camera_selector = CameraSelector()
-        self.camera_selector.connect_refresh(self.find_cameras)
+        self.camera_selector.connect_refresh(self.redetect_cameras)
 
         self.run_button = QPushButton("켜기")
         self.run_button.setEnabled(False)
@@ -106,6 +106,10 @@ class MainApp(QMainWindow, Draggable):
         self.camera_selector.set_loading_state()
         self.run_button.setEnabled(False)
         self.camera_detector.detect_async(self._on_cameras_detected)
+
+    def redetect_cameras(self):
+        self.stop_camera()
+        self.find_cameras()
 
     def _on_cameras_detected(self, cameras):
         self.camera_selector.update_cameras(cameras)
