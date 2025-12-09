@@ -122,6 +122,7 @@ class MainApp(QMainWindow):
         self.camera_manager.on_stop_camera()
         self.timer.stop()
         self.original_area.clear()
+        self.removed_bg_area.clear()
         self.run_button.setText("켜기")
 
     def update_frame(self):
