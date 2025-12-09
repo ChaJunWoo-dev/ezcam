@@ -8,10 +8,13 @@ import cv2
 from camera_manager import CameraManager
 from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
 from background_remover import remove_bg, apply_green_bg
+from overlay_window import OverlayWindow
+from draggable import Draggable
 
-class MainApp(QMainWindow):
+class MainApp(QMainWindow, Draggable):
     def __init__(self):
         super().__init__()
+        Draggable.__init__(self)
 
         self.setWindowTitle("EZCAM - AI 캠 배경 제거")
         self.setGeometry(100, 100, 1400, 600)
@@ -70,6 +73,7 @@ class MainApp(QMainWindow):
 
         self.overlay_button = QPushButton("오버레이")
         self.overlay_button.setEnabled(False)
+        self.overlay_button.clicked.connect(self.start_overlay_mode)
 
         self.window_controls = WindowControls()
         self.window_controls.connect_signals(self.showMinimized, self.close)
@@ -159,15 +163,7 @@ class MainApp(QMainWindow):
         pix = QPixmap.fromImage(q_img)
         self.removed_bg_area.update_frame(pix)
 
-    def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton:
-            self.drag_pos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-            event.accept()
-
-    def mouseMoveEvent(self, event):
-        if self.drag_pos and event.buttons() == Qt.MouseButton.LeftButton:
-            self.move(event.globalPosition().toPoint() - self.drag_pos)
-            event.accept()
-
-    def mouseReleaseEvent(self, event):
-        self.drag_pos = None
+    def start_overlay_mode(self):
+        self.overlay_window = OverlayWindow(self, self.camera_manager)
+        self.overlay_window.show()
+        self.hide()
