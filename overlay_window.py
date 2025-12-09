@@ -2,13 +2,13 @@ from PyQt6.QtWidgets import QLabel
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
 
-from draggable import Draggable
+from mouse_event import MouseEvent
 from background_remover import remove_bg
 
-class OverlayWindow(QLabel, Draggable):
+class OverlayWindow(QLabel, MouseEvent):
     def __init__(self, main_app, camera_manager):
         super().__init__()
-        Draggable.__init__(self)
+        MouseEvent.__init__(self)
         self.main_app = main_app
         self.camera_manager = camera_manager
 
@@ -17,7 +17,6 @@ class OverlayWindow(QLabel, Draggable):
             Qt.WindowType.WindowStaysOnTopHint
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
         self.resize(640, 480)
 
@@ -42,3 +41,12 @@ class OverlayWindow(QLabel, Draggable):
         if event.key() == Qt.Key.Key_Escape:
             self.close()
             self.main_app.show()
+
+    def resize_overlay(self, width, height):
+        self.resize(width, height)
+
+        if self.pixmap():
+            scaled_pix = self.pixmap().scaled(
+                self.width(), self.height(), Qt.AspectRatioMode.KeepAspectRatio
+            )
+            self.setPixmap(scaled_pix)

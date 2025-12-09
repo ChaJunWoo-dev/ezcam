@@ -9,12 +9,12 @@ from camera_manager import CameraManager
 from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
 from background_remover import remove_bg, apply_green_bg
 from overlay_window import OverlayWindow
-from draggable import Draggable
+from mouse_event import MouseEvent
 
-class MainApp(QMainWindow, Draggable):
+class MainApp(QMainWindow, MouseEvent):
     def __init__(self):
         super().__init__()
-        Draggable.__init__(self)
+        MouseEvent.__init__(self)
 
         self.setWindowTitle("EZCAM - AI 캠 배경 제거")
         self.setGeometry(100, 100, 1400, 600)
@@ -22,8 +22,6 @@ class MainApp(QMainWindow, Draggable):
             Qt.WindowType.FramelessWindowHint |
             Qt.WindowType.WindowStaysOnTopHint
         )
-
-        self.drag_pos = None
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
@@ -58,6 +56,7 @@ class MainApp(QMainWindow, Draggable):
     def init_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
+        central.setMouseTracking(True)
 
         main_layout = QVBoxLayout(central)
         main_layout.setContentsMargins(20, 20, 20, 20)
@@ -101,6 +100,10 @@ class MainApp(QMainWindow, Draggable):
         main_layout.addSpacing(12)
         main_layout.addWidget(self.slider)
         main_layout.addLayout(video_layout)
+
+        # 모든 자식 위젯에 마우스 트래킹 활성화
+        for widget in self.findChildren(QWidget):
+            widget.setMouseTracking(True)
 
     def find_cameras(self):
         self.camera_selector.set_loading_state()
