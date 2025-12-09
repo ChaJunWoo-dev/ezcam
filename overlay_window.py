@@ -4,7 +4,7 @@ from PyQt6.QtGui import QImage, QPixmap
 import cv2
 
 from mouse_event import MouseEvent
-from background_remover import remove_bg
+from background_remover import bg_remover
 
 class OverlayWindow(QLabel, MouseEvent):
     def __init__(self, main_app, camera_manager):
@@ -31,7 +31,7 @@ class OverlayWindow(QLabel, MouseEvent):
         if frame is None:
             return
 
-        clean_bg = remove_bg(frame)
+        clean_bg = bg_remover.remove_bg(frame)
         rgba = cv2.cvtColor(clean_bg, cv2.COLOR_BGRA2RGBA)
         h, w, ch = rgba.shape
         bytes_per_line = ch * w

@@ -7,7 +7,7 @@ import cv2
 
 from camera_manager import CameraManager
 from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
-from background_remover import remove_bg, apply_green_bg
+from background_remover import bg_remover
 from overlay_window import OverlayWindow
 from mouse_event import MouseEvent
 
@@ -84,6 +84,7 @@ class MainApp(QMainWindow, MouseEvent):
         top_layout.addWidget(self.window_controls)
 
         self.slider = Slider(label_text="배경 감도:", initial_value=0.7)
+        self.slider.value_changed.connect(self._on_threshold_changed)
 
         video_layout = QHBoxLayout()
 
@@ -101,7 +102,6 @@ class MainApp(QMainWindow, MouseEvent):
         main_layout.addWidget(self.slider)
         main_layout.addLayout(video_layout)
 
-        # 모든 자식 위젯에 마우스 트래킹 활성화
         for widget in self.findChildren(QWidget):
             widget.setMouseTracking(True)
 
@@ -152,8 +152,8 @@ class MainApp(QMainWindow, MouseEvent):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         self.show_original(rgb)
 
-        clean_bg = remove_bg(frame)
-        processed_bg = apply_green_bg(clean_bg)
+        clean_bg = bg_remover.remove_bg(frame)
+        processed_bg = bg_remover.apply_green_bg(clean_bg)
         self.show_chroma(processed_bg)
 
     def show_original(self, frame):
@@ -170,6 +170,9 @@ class MainApp(QMainWindow, MouseEvent):
         q_img = QImage(rgba.data, w, h, bytes_per_line, QImage.Format.Format_RGBA8888)
         pix = QPixmap.fromImage(q_img)
         self.removed_bg_area.update_frame(pix)
+
+    def _on_threshold_changed(self, value):
+        bg_remover.set_threshold(value)
 
     def start_overlay_mode(self):
         self.overlay_window = OverlayWindow(self, self.camera_manager)
