@@ -42,3 +42,15 @@ QPushButton#minimizeButton {
 QPushButton#minimizeButton:hover {
     background-color: #aaaaaa;
 }
+
+QPushButton#helpButton {
+    background-color: #95a5a6;
+    color: #2b2b2b;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+QPushButton#helpButton:hover {
+    background-color: #7f8c8d;
+}
