@@ -20,15 +20,16 @@ QPushButton:disabled {
 }
 
 QPushButton#closeButton {
-    background-color: #e74c3c;
-    color: white;
+    background-color: #cccccc;
+    color: #2b2b2b;
     border: none;
     font-weight: bold;
     border-radius: 4px;
 }
 
 QPushButton#closeButton:hover {
-    background-color: #c0392b;
+    background-color: #e74c3c;
+    color: white;
 }
 
 QPushButton#minimizeButton {

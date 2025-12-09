@@ -29,7 +29,7 @@ class WindowControls(QWidget):
         self.minimize_btn.setFixedWidth(40)
 
         self.close_btn = QPushButton()
-        self.close_btn.setIcon(qta.icon("fa5s.times", color="white"))
+        self.close_btn.setIcon(qta.icon("fa5s.times", color="#2b2b2b"))
         self.close_btn.setObjectName("closeButton")
         self.close_btn.setFixedWidth(40)
 
