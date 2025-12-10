@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
@@ -38,21 +38,9 @@ class MainApp(QMainWindow, MouseEvent):
         self.camera_detector.detected.connect(self._on_cameras_detected)
         self.camera_detector.start()
 
+        self.camera_selector.set_loading_state()
         self.load_stylesheet()
         self.init_ui()
-
-    def _check_ready(self):
-        if self.is_model_ready and self.is_cam_ready:
-            self.run_button.setEnabled(True)
-
-    def _on_model_loaded(self):
-        self.is_model_ready = True
-        self._check_ready()
-
-    def _on_cameras_detected(self, cameras):
-        self.camera_selector.update_cameras(cameras)
-        self.is_cam_ready = len(cameras) > 0
-        self._check_ready()
 
     def load_stylesheet(self):
         paths = [
@@ -62,17 +50,13 @@ class MainApp(QMainWindow, MouseEvent):
             "styles/slider.qss",
         ]
 
-        try:
-            qss = ""
+        qss = ""
 
-            for path in paths:
-                with open(path, "r", encoding="utf-8") as f:
-                    qss += f.read()
+        for path in paths:
+            with open(path, "r", encoding="utf-8") as f:
+                qss += f.read()
 
-            self.setStyleSheet(qss)
-        except Exception as e:
-            print("QSS 파일 로딩 실패:", e)
-
+        self.setStyleSheet(qss)
 
     def init_ui(self):
         central = QWidget()
@@ -86,6 +70,9 @@ class MainApp(QMainWindow, MouseEvent):
 
         self.camera_selector = CameraSelector()
         self.camera_selector.connect_refresh(self.redetect_cameras)
+
+        self.model_status_label = QLabel("배경 제거 준비 중...")
+        self.model_status_label.setStyleSheet("color: #888; font-size: 12px;")
 
         self.run_button = QPushButton("켜기")
         self.run_button.setEnabled(False)
@@ -101,6 +88,7 @@ class MainApp(QMainWindow, MouseEvent):
         top_layout.addWidget(self.camera_selector)
         top_layout.addWidget(self.run_button)
         top_layout.addWidget(self.overlay_button)
+        top_layout.addWidget(self.model_status_label)
         top_layout.addStretch()
         top_layout.addWidget(self.window_controls)
 
@@ -133,9 +121,9 @@ class MainApp(QMainWindow, MouseEvent):
         self.run_button.setEnabled(False)
         self.camera_selector.set_loading_state()
 
-        detector = CameraDetectWorekr(cam_manager)
-        detector.detected.connect(self._on_cameras_detected)
-        detector.start()
+        self.redetect_worker = CameraDetectWorekr(cam_manager)
+        self.redetect_worker.detected.connect(self._on_cameras_detected)
+        self.redetect_worker.start()
 
     def toggle_camera(self):
         if cam_manager.is_running:
@@ -159,6 +147,11 @@ class MainApp(QMainWindow, MouseEvent):
         self.removed_bg_area.clear()
         self.run_button.setText("켜기")
         self.overlay_button.setEnabled(False)
+
+    def start_overlay_mode(self):
+        self.overlay_window = OverlayWindow(self, cam_manager)
+        self.overlay_window.show()
+        self.hide()
 
     def update_frame(self):
         frame = cam_manager.get_frame()
@@ -188,10 +181,28 @@ class MainApp(QMainWindow, MouseEvent):
         pix = QPixmap.fromImage(q_img)
         self.removed_bg_area.update_frame(pix)
 
+    def _check_ready(self):
+        if self.is_model_ready and self.is_cam_ready:
+            self.run_button.setEnabled(True)
+
+    def _on_model_loaded(self):
+        self.is_model_ready = True
+        self.model_status_label.hide()
+        self._check_ready()
+
+    def _on_cameras_detected(self, cameras):
+        self.camera_selector.update_cameras(cameras)
+        self.is_cam_ready = len(cameras) > 0
+        self._check_ready()
+
     def _on_threshold_changed(self, value):
         bg_remover.set_threshold(value)
 
-    def start_overlay_mode(self):
-        self.overlay_window = OverlayWindow(self, cam_manager)
-        self.overlay_window.show()
-        self.hide()
+    def closeEvent(self, event):
+        if self.camera_detector.isRunning():
+            self.camera_detector.wait()
+        if self.model_loader.isRunning():
+            self.model_loader.wait()
+        if hasattr(self, 'redetect_worker') and self.redetect_worker.isRunning():
+            self.redetect_worker.wait()
+        event.accept()
