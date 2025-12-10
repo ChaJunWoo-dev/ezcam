@@ -1,25 +1,33 @@
 import cv2
 import numpy as np
-import torch
-from RobustVideoMatting.model import MattingNetwork
 
 class BackgroundRemover:
     def __init__(self):
-        self.model = MattingNetwork(variant='resnet50').eval().cuda()
-        self.model.load_state_dict(torch.load('rvm_resnet50.pth'))
+        self.model = None
+        self.torch = None
         self.rvm_rec = [None, None, None, None]
         self.bg_threshold = 0.7
+
+    def _model_lazy_load(self):
+        if self.model is None:
+            import torch
+            from RobustVideoMatting.model import MattingNetwork
+
+            self.torch = torch
+            self.model = MattingNetwork(variant='resnet50').eval().cuda()
+            self.model.load_state_dict(torch.load('rvm_resnet50.pth'))
 
     def set_threshold(self, value):
         self.bg_threshold = value
 
     def remove_bg(self, frame_bg):
+        self._model_lazy_load()
         frame_rgb = cv2.cvtColor(frame_bg, cv2.COLOR_BGR2RGB)
 
-        tensor = torch.from_numpy(frame_rgb).float() / 255.0
+        tensor = self.torch.from_numpy(frame_rgb).float() / 255.0
         tensor = tensor.permute(2, 0, 1).unsqueeze(0).to("cuda")
 
-        with torch.no_grad():
+        with self.torch.no_grad():
             outs = self.model(tensor, *self.rvm_rec, downsample_ratio=0.25)
 
         fgr, pha = outs[0], outs[1]
