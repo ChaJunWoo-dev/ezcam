@@ -5,11 +5,11 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
 import cv2
 
-from camera_manager import CameraManager
+from core.camera_manager import CameraManager
 from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
-from background_remover import bg_remover
-from overlay_window import OverlayWindow
-from mouse_event import MouseEvent
+from core.background_remover import bg_remover
+from windows.overlay_window import OverlayWindow
+from core.mouse_event import MouseEvent
 
 class MainApp(QMainWindow, MouseEvent):
     def __init__(self):

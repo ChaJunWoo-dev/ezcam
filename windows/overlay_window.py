@@ -3,8 +3,8 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
 import cv2
 
-from mouse_event import MouseEvent
-from background_remover import bg_remover
+from core.mouse_event import MouseEvent
+from core.background_remover import bg_remover
 
 class OverlayWindow(QLabel, MouseEvent):
     def __init__(self, main_app, camera_manager):
