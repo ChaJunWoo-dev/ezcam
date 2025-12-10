@@ -56,3 +56,5 @@ class CameraManager:
             return frame
 
         return None
+
+cam_manager = CameraManager()

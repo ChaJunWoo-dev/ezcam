@@ -5,11 +5,12 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QImage, QPixmap
 import cv2
 
-from core.camera_manager import CameraManager
-from components import CameraDetector, WindowControls, CameraSelector, Slider, CameraView
+from core.camera_manager import cam_manager
+from components import WindowControls, CameraSelector, Slider, CameraView
 from core.background_remover import bg_remover
 from windows.overlay_window import OverlayWindow
 from core.mouse_event import MouseEvent
+from workers import ModelLoadWorker, CameraDetectWorekr
 
 class MainApp(QMainWindow, MouseEvent):
     def __init__(self):
@@ -26,12 +27,32 @@ class MainApp(QMainWindow, MouseEvent):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_frame)
 
-        self.camera_manager = CameraManager()
-        self.camera_detector = CameraDetector(self.camera_manager)
+        self.is_cam_ready = False
+        self.is_model_ready = False
+
+        self.model_loader = ModelLoadWorker(bg_remover)
+        self.model_loader.loaded.connect(self._on_model_loaded)
+        self.model_loader.start()
+
+        self.camera_detector = CameraDetectWorekr(cam_manager)
+        self.camera_detector.detected.connect(self._on_cameras_detected)
+        self.camera_detector.start()
 
         self.load_stylesheet()
         self.init_ui()
-        self.find_cameras()
+
+    def _check_ready(self):
+        if self.is_model_ready and self.is_cam_ready:
+            self.run_button.setEnabled(True)
+
+    def _on_model_loaded(self):
+        self.is_model_ready = True
+        self._check_ready()
+
+    def _on_cameras_detected(self, cameras):
+        self.camera_selector.update_cameras(cameras)
+        self.is_cam_ready = len(cameras) > 0
+        self._check_ready()
 
     def load_stylesheet(self):
         paths = [
@@ -105,23 +126,19 @@ class MainApp(QMainWindow, MouseEvent):
         for widget in self.findChildren(QWidget):
             widget.setMouseTracking(True)
 
-    def find_cameras(self):
-        self.camera_selector.set_loading_state()
-        self.run_button.setEnabled(False)
-        self.camera_detector.detect_async(self._on_cameras_detected)
-
     def redetect_cameras(self):
-        if self.camera_manager.is_running:
+        if cam_manager.is_running:
             self.stop_camera()
-        self.find_cameras()
+        self.is_cam_ready = False
+        self.run_button.setEnabled(False)
+        self.camera_selector.set_loading_state()
 
-    def _on_cameras_detected(self, cameras):
-        self.camera_selector.update_cameras(cameras)
-        if cameras:
-            self.run_button.setEnabled(True)
+        detector = CameraDetectWorekr(cam_manager)
+        detector.detected.connect(self._on_cameras_detected)
+        detector.start()
 
     def toggle_camera(self):
-        if self.camera_manager.is_running:
+        if cam_manager.is_running:
             self.stop_camera()
         else:
             self.start_camera()
@@ -130,13 +147,13 @@ class MainApp(QMainWindow, MouseEvent):
         camera = self.camera_selector.get_selected_camera()
 
         if camera:
-            self.camera_manager.on_start_camera(camera["index"])
+            cam_manager.on_start_camera(camera["index"])
             self.timer.start(33)
             self.run_button.setText("끄기")
             self.overlay_button.setEnabled(True)
 
     def stop_camera(self):
-        self.camera_manager.on_stop_camera()
+        cam_manager.on_stop_camera()
         self.timer.stop()
         self.original_area.clear()
         self.removed_bg_area.clear()
@@ -144,7 +161,7 @@ class MainApp(QMainWindow, MouseEvent):
         self.overlay_button.setEnabled(False)
 
     def update_frame(self):
-        frame = self.camera_manager.get_frame()
+        frame = cam_manager.get_frame()
 
         if frame is None:
             return
@@ -175,6 +192,6 @@ class MainApp(QMainWindow, MouseEvent):
         bg_remover.set_threshold(value)
 
     def start_overlay_mode(self):
-        self.overlay_window = OverlayWindow(self, self.camera_manager)
+        self.overlay_window = OverlayWindow(self, cam_manager)
         self.overlay_window.show()
         self.hide()

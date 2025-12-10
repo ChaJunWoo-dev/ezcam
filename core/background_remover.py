@@ -8,7 +8,7 @@ class BackgroundRemover:
         self.rvm_rec = [None, None, None, None]
         self.bg_threshold = 0.7
 
-    def _model_lazy_load(self):
+    def model_lazy_load(self):
         if self.model is None:
             import torch
             from RobustVideoMatting.model import MattingNetwork
@@ -21,7 +21,6 @@ class BackgroundRemover:
         self.bg_threshold = value
 
     def remove_bg(self, frame_bg):
-        self._model_lazy_load()
         frame_rgb = cv2.cvtColor(frame_bg, cv2.COLOR_BGR2RGB)
 
         tensor = self.torch.from_numpy(frame_rgb).float() / 255.0
