@@ -11,11 +11,20 @@ class BackgroundRemover:
     def model_lazy_load(self):
         if self.model is None:
             import torch
+            import sys
+            import os
             from RobustVideoMatting.model import MattingNetwork
+
+            if getattr(sys, 'frozen', False):
+                base_path = sys._MEIPASS
+            else:
+                base_path = os.path.abspath(".")
+
+            model_path = os.path.join(base_path, 'rvm_resnet50.pth')
 
             self.torch = torch
             self.model = MattingNetwork(variant='resnet50').eval().cuda()
-            self.model.load_state_dict(torch.load('rvm_resnet50.pth'))
+            self.model.load_state_dict(torch.load(model_path))
 
     def set_threshold(self, value):
         self.bg_threshold = value

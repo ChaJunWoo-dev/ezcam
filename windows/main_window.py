@@ -43,18 +43,29 @@ class MainApp(QMainWindow, MouseEvent):
         self.camera_selector.set_loading_state()
 
     def load_stylesheet(self):
+        import sys
+        import os
+
+        if getattr(sys, 'frozen', False):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.abspath(".")
+
         paths = [
-            "styles/base.qss",
-            "styles/combo.qss",
-            "styles/button.qss",
-            "styles/slider.qss",
+            os.path.join(base_path, "styles/base.qss"),
+            os.path.join(base_path, "styles/combo.qss"),
+            os.path.join(base_path, "styles/button.qss"),
+            os.path.join(base_path, "styles/slider.qss"),
         ]
 
         qss = ""
 
         for path in paths:
-            with open(path, "r", encoding="utf-8") as f:
-                qss += f.read()
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    qss += f.read()
+            except FileNotFoundError:
+                pass
 
         self.setStyleSheet(qss)
 
